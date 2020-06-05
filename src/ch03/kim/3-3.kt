@@ -3,7 +3,7 @@ fun main(args: Array<String>) {
 //    println(reverse("maisy"))
 }
 
-fun factorial(n: Int): Int = when {
+private fun factorial(n: Int): Int = when {
     n == 1 -> 1
     else -> n * factorial(n - 1)
 }
