@@ -170,13 +170,13 @@ sayNumber2 함수는 입력값 1,2,3에 대한 결과만 정의했다. 이 외�
 ### 부분 함수 만들기
 - PartialFunction 클래스
 ```kotlin
-class PartialFunction<in P, out P> (
+class PartialFunction<P, R> (
   private val condition: (P) -> Boolean,
   private val f: (P) -> R
 ) : (P) -> R {
   override fun invoke(p: P): R = when {
     condition(p) -> f(p)
-    else -> throw IllegalArgumentExcpetion("$p isn`t supported.")
+    else -> throw IllegalArgumentException("$p isn`t supported.")
   }
 
   fun isDefinedAt(p: P): Boolean = condition(p)
@@ -186,7 +186,7 @@ PartialFunction의 생성자는 입력값을 확인하는 함수 condition과, �
 
 - PartialFunction을 사용한 oneTwoThree 부분 함수
 ```kotlin
-val condtion: (Int) -> Boolean = { it in 1..3 }
+val condition: (Int) -> Boolean = { it in 1..3 }
 val body: (Int) -> String = {
   when(it) {
     1 -> "One!"
