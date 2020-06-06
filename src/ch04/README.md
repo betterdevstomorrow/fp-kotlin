@@ -170,13 +170,13 @@ sayNumber2 함수는 입력값 1,2,3에 대한 결과만 정의했다. 이 외�
 ### 부분 함수 만들기
 - PartialFunction 클래스
 ```kotlin
-class PartialFunction<in P, out P> (
+class PartialFunction<P, R> (
   private val condition: (P) -> Boolean,
-  prviate val f: (P) -> R
+  private val f: (P) -> R
 ) : (P) -> R {
   override fun invoke(p: P): R = when {
     condition(p) -> f(p)
-    else -> throw IllegalArgumentExcpetion("$p isn`t supported.")
+    else -> throw IllegalArgumentException("$p isn`t supported.")
   }
 
   fun isDefinedAt(p: P): Boolean = condition(p)
@@ -186,7 +186,7 @@ PartialFunction의 생성자는 입력값을 확인하는 함수 condition과, �
 
 - PartialFunction을 사용한 oneTwoThree 부분 함수
 ```kotlin
-val condtion: (Int) -> Boolean = { it in 1..3 }
+val condition: (Int) -> Boolean = { it in 1..3 }
 val body: (Int) -> String = {
   when(it) {
     1 -> "One!"
@@ -209,7 +209,7 @@ if (oneTwoThree.isDefinedAt(3)) {
 val isEven = PartialFunction<Int, String>({ it % 2 == 0}, { "$it is even" })
 
 if (isEven.isDefinedAt(100)) {
-  print(isEven()100)
+  print(isEven(100))
 } else {
   print("isDefinedAt(x) return false")
 }
@@ -229,7 +229,7 @@ val body: (Int) -> String = { "$it is even" }
 val isEven = body.toPartialFuction(condtion)
 
 if (isEven.isDefinedAt(100)) {
-  print(isEven()100)
+  print(isEven(100))
 } else {
   print("isDefinedAt(x) return false")
 }
@@ -313,7 +313,7 @@ fun main(args: Array<String>) {
 ```kotlin
 fun <P1, P2, P3, R> ((P1, P2, P3) -> R).curried(): (P1) -> (P2) -> (P3) -> R = { p1: P1 -> { p2: P2 -> { p3: P3 -> this(p1, p2, p3) } } }
 
-fun <P1, P2, R> ((P1) -> (P2) -> P(3) -> R).uncurried(): (P1, P2, p3) -> R = { p1: P2, p2: P2, p3: P3 -> this(p1)(p2)(p3)}
+fun <P1, P2, R> ((P1) -> (P2) -> (P3) -> R).uncurried(): (P1, P2, p3) -> R = { p1: P2, p2: P2, p3: P3 -> this(p1)(p2)(p3) }
 ```
 
 - curried, uncurried 함수 사용 예
@@ -494,13 +494,13 @@ fun <T> replicate(n:Int, x:T): List<T> {
 fun main(args: Array<String>) {
   val result = object : Callback1 {
     override fun callBack(x1: String): Callback2 {
-      overriede fun callback(x2: String): Callback3 {
+      override fun callback(x2: String): Callback3 {
         return object : CallBack3 {
           override fun callBack(x3: String): CallBack4 {
             return object : CallBack4 {
-              ovrride fun callBack(x4: String): CallBack5 {
+              override fun callBack(x4: String): CallBack5 {
                 return object : CallBack5 {
-                  ovrride fun callback(x5: String): String {
+                  override fun callback(x5: String): String {
                     return x1 + x2 + x3 + x4 + x5
                   }
                 }
@@ -514,8 +514,8 @@ fun main(args: Array<String>) {
   println(result
     .callBack("1")
     .callBack("2")
-    .callBack("3)
-    .callBack("4)
+    .callBack("3")
+    .callBack("4")
     .callBack("5")) // "12345" 출력
 }
 
@@ -561,7 +561,7 @@ val callback: (String) -> (String) -> (String) -> (String) -> (String) -> String
   }
 }
 
-val particalApplied = callBack("prefix")(":")
-println(particalApplied("1")("2")("3")) // "prefix:123" 출력
-println(particalApplied("a")("b")("c")) // "prefix:abc" 출력
+val partialApplied = callBack("prefix")(":")
+println(partialApplied("1")("2")("3")) // "prefix:123" 출력
+println(partialApplied("a")("b")("c")) // "prefix:abc" 출력
 ```

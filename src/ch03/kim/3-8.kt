@@ -10,7 +10,7 @@ fun zip(list1: List<Int>, list2: List<Int>): List<Pair<Int, Int>> = when {
     else -> listOf(Pair(list1.head(), list2.head())) + zip(list1.tail(), list2.tail())
 }
 
-fun quicksort(elem: List<Int>): List<Int> = when {
+private fun quicksort(elem: List<Int>): List<Int> = when {
     elem.isEmpty() -> listOf()
     else -> {
         val pivot = elem.head()

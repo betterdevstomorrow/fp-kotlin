@@ -1,7 +1,7 @@
 package ch03.kwon.code
 
-fun String.head() = first()
-fun String.tail() = drop(1)
+import ch03.kwon.head
+import ch03.kwon.tail
 
 fun reverse(str: String): String = when {
     str.isEmpty() -> ""

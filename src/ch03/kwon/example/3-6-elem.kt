@@ -1,7 +1,7 @@
 package ch03.kwon.example
 
-fun List<Int>.head() = first()
-fun List<Int>.tail() = drop(1)
+import ch03.kwon.head
+import ch03.kwon.tail
 
 fun main() {
     require(elem(5, listOf(1, 3, 5)))
