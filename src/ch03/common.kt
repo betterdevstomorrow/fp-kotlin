@@ -17,3 +17,12 @@ operator fun <T> Sequence<T>.plus(other: () -> Sequence<T>) = object : Sequence<
         override fun hasNext(): Boolean = thisIterator.hasNext() || otherIterator.hasNext()
     }
 }
+
+sealed class Bounce<A>
+data class Done<A>(val result: A): Bounce<A>()
+data class More<A>(val thunk: () -> Bounce<A>): Bounce<A>()
+
+tailrec fun<A> tramploline(bounce: Bounce<A>): A = when (bounce) {
+    is Done -> bounce.result
+    is More -> tramploline(bounce.thunk());
+}

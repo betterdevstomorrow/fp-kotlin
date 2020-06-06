@@ -1,4 +1,6 @@
 import ch03.plus
+import java.math.BigDecimal
+import kotlin.math.sqrt
 
 fun main() {
     println("연습문제 3-2 : " + power(3.0,3))
@@ -15,6 +17,10 @@ fun main() {
     println("연습문제 3-13: " + powerTail(3.0, 3))
     println("연습문제 3-14 : " + toBinaryTail(11))
     println("연습문제 3-15 : " + replicateTail(3, 5))
+    println("연습문제 3-16 : " + elemTail(3, listOf(1)))
+    println("연습문제 3-17 : " + mySqrt(12.0))
+    println("연습문제 3-18 : " + trampoline(mySqrtT(12.0)))
+    println("연습문제 3-19 : " + trampoline(factorialT(BigDecimal(100000))))
 }
 
 fun repeat(n: Int): Sequence<Int> = sequenceOf(n) + { repeat(n) }
@@ -86,32 +92,68 @@ fun factorialMemo(n: Int): Int = when {
 }
 
 // (Failed) 연습문제 3-11
-fun factorialFP(n: Int, acc: Int = 1): Int = when (n) {
+private fun factorialFP(n: Int, acc: Int = 1): Int = when (n) {
     0 -> acc
     else -> factorialFP(n-1, n * acc)
 }
 
 // 연습문제 3-12
-tailrec fun factorialTail(n: Int, acc: Int = 1): Int = when (n) {
+private tailrec fun factorialTail(n: Int, acc: Int = 1): Int = when (n) {
     0 -> acc
     else -> factorialTail(n-1, n * acc)
 }
 
 // 연습문제 3-13
-tailrec fun powerTail(x: Double, n: Int, acc: Double = x): Double = when (n) {
+private tailrec fun powerTail(x: Double, n: Int, acc: Double = x): Double = when (n) {
     1 -> acc
     else -> powerTail(x, n-1, acc * x)
 }
 
 // 연습문제 3-14
-tailrec fun toBinaryTail(n: Int, b: String = ""): String = when(n) {
+private tailrec fun toBinaryTail(n: Int, b: String = ""): String = when(n) {
     0 -> b
     1 -> "1".plus(b)
     else -> toBinaryTail(n/2, (n%2).toString() + b)
 }
 
 // 연습문제 3-15
-tailrec fun replicateTail(n: Int, element: Int, list: List<Int> = listOf()): List<Int> = when (n) {
+private tailrec fun replicateTail(n: Int, element: Int, list: List<Int> = listOf()): List<Int> = when (n) {
     0 -> list
     else -> replicateTail(n-1, element, list + listOf(element))
 }
+
+// 연습문제 3-16
+private tailrec fun elemTail(num: Int, list: List<Int>): Boolean = when {
+    list.isEmpty() -> false
+    num == list.first() -> true
+    else -> elemTail(num, list.tail())
+}
+
+// 연습문제 3-17
+private fun mySqrt(num: Double): Double = when {
+    num < 1 -> num
+    else -> divideTwo(sqrt(num))
+}
+
+private fun divideTwo(num: Double): Double = when {
+    num < 1 -> num
+    else -> mySqrt(num / 2);
+}
+
+// 연습문제 3-18
+private fun mySqrtT(num: Double): Bounce<Double> = when {
+    num < 1 -> Done(num)
+    else -> More { divideTwoT(sqrt(num)) }
+}
+
+private fun divideTwoT(num: Double): Bounce<Double> = when {
+    num < 1 -> Done(num)
+    else -> More { mySqrtT(num / 2) }
+}
+
+// 연습문제 3-19
+private fun factorialT(n: BigDecimal, acc: BigDecimal = BigDecimal(1)): Bounce<BigDecimal> = when (n) {
+    BigDecimal(0) -> Done(acc)
+    else -> More { factorialT(n.dec(), n.multiply(acc)) }
+}
+
