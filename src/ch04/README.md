@@ -310,7 +310,7 @@ fun main(args: Array<String>) {
 
 ### 코틀린용 커링 함수 추상화하기
 - curried, uncurried 함수
-```kotlin
+```kotlinmaxComposePower
 fun <P1, P2, P3, R> ((P1, P2, P3) -> R).curried(): (P1) -> (P2) -> (P3) -> R = { p1: P1 -> { p2: P2 -> { p3: P3 -> this(p1, p2, p3) } } }
 
 fun <P1, P2, R> ((P1) -> (P2) -> (P3) -> R).uncurried(): (P1, P2, p3) -> R = { p1: P2, p2: P2, p3: P3 -> this(p1)(p2)(p3) }
@@ -353,7 +353,7 @@ fun main(args: Array<String>) {
 }
 
 infix fun <F, G, R> ((F) -> R).compose(g: (G) -> F): (G) -> R {
-  return { gIntput: G -> this(g(gInput))}
+  return { gInput: G -> this(g(gInput))}
 }
 ```
 [infix](https://kotlinlang.org/docs/reference/functions.html#infix-notation)
