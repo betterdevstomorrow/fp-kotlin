@@ -170,3 +170,148 @@ Funtor의 타입 생성자는 매개변수가 한 개이기 때문에 다른 타
 - 함수를 변수나 자료구조에 담을 수 있다.
 
 함수형 언어에서는 함수도 Maybe, Tree, Either 처럼 타입이다. 그렇다면 함수도 펑터가 될 수 있지 않을까? 함수를 배핑하면 어떻게 될까? 이번에는 함수를 펑터로 만들어 보면서 어떻게 동작하는지 살펴보자.
+
+- 코드 7-17 함수 펑터
+```kotlin
+data class UnaryFunction<int T, out R>(val g: (T) -> R) : Functor<R> {
+  orverride fun <R2> fmap(f: (R) -> R2): UnaryFunction<T, R2> {
+    return UnaryFunction { x: T -> f(g(x)) }
+  }
+
+  fun invoke(input: T): R = g(input)
+}
+```
+함수의 타입 매개변수는 입력 T와 출력 R이다. 함수의 입력은 고정하고, 출력만 매핑하기 위해서 펑터의 타입은 Functor<R>로 선언했다.
+
+fmap 함수의 반환값은 UnaryFunction 체이닝을 위해서 UnaryFunction<T, R2>로 변경했다. 그리고 예외 없이 펑터의 정의를 그래로 구현하였다.
+
+펑터 안에 존해하는 값인 함수 g를 변환 함수 f에 적용한 후, 결과값을 다시 UnaryFunction안에 넣어서 변환한다.
+
+마지막으로 UnaryFunction 안에 있는 함수를 호출한 결과를 받기 위해서 invoke함수를 추가했다. 지금까지 배운 펑터의 인스턴스인 타입을 만드는 패턴을 그대로 적용한 것에 불과 하다.
+
+- 코드 7-18 함수 펑터 사용 예
+```kotlin
+fun main() {
+  val f = { a: Int -> a + 1 }
+  val g = { g: Int -> b * 2 }
+
+  val gf = UnaryFunction(g).fmap(f)
+  println(fg.invoke(5)) // "11" 출력
+}
+```
+작성한 fmap함수에 독자의 이해를 돕기 위한 군더더기 코드를 제거하면 다음과 같이 다시 작성할 수 있다.
+
+- 코드 7-19 함수 펑터의 fmap 함수
+```kotlin
+override fun <R2> fmap(f: (R) -> R2) = UnaryFunction { x: T -> f(g(x)) }
+```
+
+- 코드 7-20 compose 함수를 활용한 함수 펑터
+```kotlin
+data class UnaryFunction<in T, out R>(val g: (T) -> R) : Functor<R> {
+  override fun <R2> fmap(f: (R) -> R2) = UnaryFunction { x: T -> (f compse g)(x)}
+
+  fun invoke(input: T): R = g(input)
+}
+```
+- 코드 7-21 펑터로 변경의 예
+```kotlin
+fun main() {
+  val g = { a: Int -> a * 2 }
+  val k = { b: Int -> Just(b) }
+  val kg = UnaryFunction(g).fmap(k)
+  println(kg.invoke(5)) //"Just(10)" 출력
+}
+```
+
+## 7.6 펑터의 법칙
+펑터가 되기 위해서는 두 가지 법칙을 만족해야한다.
+- 항등 함수(identity function)에 펑터를 통해서 매핑하면, 반환되는 펑터는 원래의 펑터와 같다.
+- 두 함수를 합성한 함수의 매핑은 각 함수를 매핑한 결과를 합성한 것과 같다.
+
+### 펑터 제 1 법칙
+- 코드 7-22 펑터 제1 법칙 표현식
+```kotlin
+fmap(identity()) == identity()
+```
+`fmap를 호출할 때 항등 함수 id를 입력으로 넣은 결과는 반드시 항등 함수를 호출한 결과와 동일해야한다.` 여기서 항등 함수는 { x -> x }와 같이 입력받은 매개변수를 어떠한 가공 없이 그대로 반환하는 함수를 말한다.
+
+- 코드 7-23 항등 함수
+```kotlin
+fun <T> identity(x: T): T = x
+```
+
+### 펑터 제 2 법칙
+- 코드 7-25 펑터 제1 법칙 표현식
+```kotlin
+fmap(f compose g) == fmap(f) compose fmap(g)
+```
+함수와 f와 g를 먼저 합성하고 fmap 함수의 입력을 넣어서 얻은 결과값은 함수f를 fmap에 넣어서 얻은 함수와 g를 fmap에 넣어서 얻은 함수를 합성한 결과와 같아야 한다.
+
+- 코드 7-26 compose 함수
+```kotlin
+infix fun <F, G, R> ((F) -> R).compose(g: (G) -> F): (G) -> R {
+  return { gInput: G -> this(g(gInput)) }
+}
+```
+
+- 코드 7-28 Maybe 펑제 제2 법칙 검증
+```koltin
+fun main() {
+  val f = { a: Int -> a + 1 }
+  val g = { b: Int -> b * 2 }
+
+  val nothingLeft = Nothing.fmap(f compose g)
+  val nothingRight = Nothing.fmap(g).fmap(f)
+  println(nothingLeft == nothingRight) // "true"
+
+  val justLeft = Just(5).fmap(f compose g)
+  val justRight = Just(5).fmap(g).fmap(f)
+  println(justLeft == justRight) // "true
+}
+```
+
+### 펑터의 법칙을 반족하지 못하는 펑터 인스턴스의 예
+- 코드 7-30 MaybeCounter
+```kotlin
+sealed class MaybeCounter<out A> : Funcdtor<A> {
+  abstract override fun toString(): String
+  abstract override fun <B> fmap(f: (A) -> B): MaybeCounter<B>
+}
+
+data class JustCounter<out A>(val value: A, val count: Int): MaybeCounter<A>() {
+  override fun toString(): String = "JustCounter($value, $count)"
+  override fun <B> fmap(f: (A) -> B): MaybeCounter<B> = JustCounter(f(value), count + 1)
+}
+
+object NothingCounter: MaybeCounter<kotlin.Nothing()> {
+  override fun toString(): String = "NothingCounter"
+  override fun <B> fmap(f: (kotlin.Nothing) -> B): MaybeCounter<B> = NothingCounter
+}
+```
+- 코드 7-31 MaybeCounter 사용 예
+```kotlin
+fun main() {
+  println(JustCounter(10, 3).fmap { it + 10}.fmap { it * 2 })
+  // "JustCounter(40, 5)"
+  println(NothingCounter.fmap{ x: Int -> x * 10 }) //"NothingCounter"
+}
+```
+- 코드 7-32 MaybeCounter의 펑터 법칙 검증
+```kotlin
+fun main() {
+  println(NothingCounter.fmap { identity(it) } == identity(NothingCounter)) // "true"
+  println(JustCounter(5, 0).fmap { identity(it) } == identity(JustCounter(5, 0))) // "false
+
+  val f = { a: Int -> a + 1 }
+  val g = { b: Int -> b * 2 }
+
+  val nothingLeft = NothingCounter.fmap { f compose g }
+  val nothingRight = NothingCounter.fmap(g).fmap(f)
+  println(nothingLeft == nothingRight) //"true"
+
+  val justLeft = JustCounter(5, 0).fmap { f compose g }
+  val justRight = JustCounter(5, 0).fmap(g).fmap(f)
+  println(just == justRight) // "false
+}
+```
