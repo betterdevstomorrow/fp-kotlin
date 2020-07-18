@@ -5,10 +5,10 @@ private infix fun <F, G, R> ((F) -> R).compose(g: (G) -> F): (G) -> R {
 }
 
 fun main() {
-    val max = { i: List<Int> -> i.max() }
+    val max = { i: List<Int> -> i.max()!! } // !!널 값이 안들어온다는 것을 보증해주는 연산자
     val power = { i: Int -> i * i }
 
     // TODO
     val composed = power compose max
-    println(power(max(listOf(1, 2, 3))))
+    println(composed(listOf(1, 2, 3)))
 }
